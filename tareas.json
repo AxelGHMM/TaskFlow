@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "titulo": "Tarea 1: Implementar Splash",
+    "completada": true
+  },
+  {
+    "id": 2,
+    "titulo": "Tarea 2: Crear módulo CSR",
+    "completada": false
+  },
+  {
+    "id": 3,
+    "titulo": "Tarea 3: Desarrollar SSR",
+    "completada": false
+  }
+]
