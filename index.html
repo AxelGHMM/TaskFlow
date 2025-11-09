@@ -10,10 +10,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="#0D47A1">
     
     <style>
-        /* ... (Tu CSS :root, body, header se quedan igual) ... */
+        /* ... (Tu CSS de :root, body, header, .fab se queda igual) ... */
         :root {
-            --color-primario: #0D47A1; /* Azul oscuro */
-            --color-fondo: #F5F5F5;   /* Gris claro */
+            --color-primario: #0D47A1; 
+            --color-fondo: #F5F5F5;
             --color-texto: #333333;
             --color-blanco: #FFFFFF;
         }
@@ -42,12 +42,27 @@
             font-size: 1.5em;
             cursor: pointer;
         }
-
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--color-primario);
+            color: var(--color-blanco);
+            border: none;
+            border-radius: 50%;
+            font-size: 2.2em;
+            line-height: 55px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
         /* 2. Main Content (Lista de Tareas) */
         .task-list {
             padding: 20px;
-            /* --- NUEVO: Para el swipe --- */
-            overflow-x: hidden;
         }
         .task-item {
             background-color: var(--color-blanco);
@@ -55,16 +70,17 @@
             padding: 15px;
             margin-bottom: 10px;
             display: flex;
-            align-items: center;
+            /* --- NUEVO: Alinea el checkbox al inicio del texto --- */
+            align-items: flex-start; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            
-            /* --- NUEVO: Transiciones para el swipe --- */
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
         }
         .task-item input[type="checkbox"] {
             margin-right: 15px;
             width: 20px;
             height: 20px;
+            /* --- NUEVO: Baja un poco el checkbox --- */
+            margin-top: 3px; 
+            flex-shrink: 0;
         }
         .task-item label {
             font-size: 1em;
@@ -74,20 +90,18 @@
             color: #888;
         }
         
-        /* --- NUEVO: Clase para la animación de borrado --- */
-        .task-item.deleting {
-            transform: translateX(100%);
-            opacity: 0;
+        /* --- NUEVO: Contenedor para el texto de la tarea y la ubicación --- */
+        .task-text-container {
+            display: flex;
+            flex-direction: column;
         }
-        
-        /* 3. Floating Action Button (FAB) */
-        .fab {
-            /* ... (Tu CSS del FAB se queda igual) ... */
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            /* ...etc... */
+        /* --- NUEVO: Estilo para la ubicación --- */
+        .task-location {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 4px;
         }
+
     </style>
 </head>
 <body>
@@ -106,7 +120,10 @@
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    
     <script>
+      // Tu configuración de Firebase (NO LA HE TOCADO)
       const firebaseConfig = {
         apiKey: "AIzaSyA8oQFUU4aRtqASRJnKkt-ZGoWpR1ckYJM",
         authDomain: "taskflow-pqa.firebaseapp.com",
@@ -119,7 +136,9 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
     </script>
+    
     <script>
+    // Tu script de Service Worker (NO LO HE TOCADO)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js') 
@@ -132,6 +151,7 @@
       });
     }
     </script>
+
     <script src="app.js"></script>
 </body>
 </html>
