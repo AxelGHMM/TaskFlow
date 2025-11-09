@@ -5,29 +5,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const contenedorTareas = document.getElementById('task-list-container');
   const loadingMsg = document.getElementById('loading-msg');
   const fabButton = document.querySelector('.fab');
-  // const geoButton = document.querySelector('.profile-icon'); // <-- Ya no lo usamos para el alert
+  // const geoButton = document.querySelector('.profile-icon'); // No lo usamos para el alert
 
-  // --- 1. Referencia a la base de datos ---
   const tareasCollection = db.collection('tareas');
   const TAREAS_LOCAL_KEY = 'misTareasLocal';
 
-  // --- 2. Función para "dibujar" las tareas (MODIFICADA) ---
+  // --- 2. Función "dibujar" (MODIFICADA para ubicación y swipe) ---
   function renderizarTareas(tareas = []) {
     contenedorTareas.innerHTML = ''; 
     if (loadingMsg) loadingMsg.remove();
 
-    if (tareas.length === 0) {
+    // --- NUEVO: Filtramos las tareas marcadas como borradas ---
+    const tareasMostrables = tareas.filter(t => !t.borrado);
+
+    if (tareasMostrables.length === 0) {
       contenedorTareas.innerHTML = '<p style="text-align: center;">No hay tareas pendientes.</p>';
       return;
     }
 
-    tareas.forEach(tarea => {
+    tareasMostrables.forEach(tarea => {
       const tareaDiv = document.createElement('div');
       tareaDiv.className = 'task-item';
       if (tarea.completada) {
         tareaDiv.classList.add('completed');
       }
-
+      
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.checked = tarea.completada;
@@ -36,16 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // ... (tu lógica de 'change' se queda igual) ...
       });
       
-      // --- NUEVO: Contenedor para el texto y la ubicación ---
       const textContainer = document.createElement('div');
       textContainer.className = 'task-text-container';
-
       const label = document.createElement('label');
       label.setAttribute('for', `task-${tarea.id}`);
       label.textContent = tarea.titulo;
       textContainer.appendChild(label);
 
-      // --- NUEVO: Muestra la ubicación si existe ---
       if (tarea.ubicacion) {
         const locationSpan = document.createElement('span');
         locationSpan.className = 'task-location';
@@ -54,31 +53,54 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       tareaDiv.appendChild(checkbox);
-      tareaDiv.appendChild(textContainer); // Añade el contenedor, no solo el label
+      tareaDiv.appendChild(textContainer);
       contenedorTareas.appendChild(tareaDiv);
+
+      // --- INICIO DE LÓGICA DE SWIPE (NUEVO) ---
+      let startX = 0;
+      let deltaX = 0;
+      tareaDiv.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].pageX;
+        tareaDiv.style.transition = 'none'; 
+      });
+      tareaDiv.addEventListener('touchmove', (e) => {
+        deltaX = e.touches[0].pageX - startX;
+        if (deltaX > 0) { 
+          tareaDiv.style.transform = `translateX(${deltaX}px)`;
+        }
+      });
+      tareaDiv.addEventListener('touchend', (e) => {
+        tareaDiv.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+        if (deltaX > 100) {
+          tareaDiv.classList.add('deleting');
+          setTimeout(() => {
+            eliminarTarea(tarea.id); // Llama a la nueva función de borrado
+          }, 300);
+        } else {
+          tareaDiv.style.transform = 'translateX(0px)';
+        }
+        startX = 0;
+        deltaX = 0;
+      });
+      // --- FIN DE LÓGICA DE SWIPE ---
     });
   }
 
-  // --- 3. Guardar Tareas (MODIFICADO para obtener ubicación) ---
-  fabButton.addEventListener('click', async () => { // <-- Convertido a 'async'
+  // --- 3. Guardar Tareas (MODIFICADO para ubicación y borrado) ---
+  fabButton.addEventListener('click', async () => {
     
-    // Mostramos un estado de carga en el botón
     const originalFabText = fabButton.innerHTML;
     fabButton.innerHTML = '...';
     fabButton.disabled = true;
 
     let locationString = "Ubicación no disponible";
     try {
-      // 1. Obtiene el GPS
-      const coords = await obtenerUbicacionActual(); // Nueva función
-      // 2. Convierte GPS a dirección
-      locationString = await convertirCoordenadasA_Direccion(coords); // Nueva función
+      const coords = await obtenerUbicacionActual();
+      locationString = await convertirCoordenadasA_Direccion(coords);
     } catch (error) {
       console.warn('Error de ubicación:', error);
-      // Si la ubicación falla, no detenemos la app, solo usamos el string por defecto.
     }
 
-    // 3. Muestra el prompt para el título
     const titulo = prompt('Escribe el título de la nueva tarea:');
     
     if (titulo && titulo.trim() !== '') {
@@ -86,9 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const nuevaTarea = {
         id: `local-${Date.now()}`, 
         titulo: titulo.trim(),
-        ubicacion: locationString, // <-- ¡NUEVO!
+        ubicacion: locationString, // (Tu lógica de ubicación)
         completada: false,
-        sincronizado: false 
+        sincronizado: false,
+        borrado: false // <--- NUEVO: bandera de borrado
       };
 
       const tareasLocales = JSON.parse(localStorage.getItem(TAREAS_LOCAL_KEY)) || [];
@@ -100,62 +123,102 @@ document.addEventListener('DOMContentLoaded', () => {
       mostrarNotificacionLocal('¡Tarea Agregada!', `La tarea "${titulo}" se guardó.`);
     }
     
-    // Restaura el botón
     fabButton.innerHTML = originalFabText;
     fabButton.disabled = false;
   });
 
-  // --- 4. Sincronización (MODIFICADO para guardar ubicación) ---
+  // --- NUEVA FUNCIÓN: Marcar Tarea para Borrar ---
+  function eliminarTarea(id) {
+    console.log(`Marcando para borrar: ${id}`);
+    const tareasLocales = JSON.parse(localStorage.getItem(TAREAS_LOCAL_KEY)) || [];
+    
+    const nuevasTareasLocales = tareasLocales.map(tarea => {
+      if (tarea.id === id) {
+        return { ...tarea, borrado: true, sincronizado: false }; 
+      }
+      return tarea;
+    });
+
+    localStorage.setItem(TAREAS_LOCAL_KEY, JSON.stringify(nuevasTareasLocales));
+    renderizarTareas(nuevasTareasLocales);
+    sincronizarConFirestore();
+  }
+
+  // --- 4. Sincronización (MODIFICADA para borrado y ubicación) ---
   function sincronizarConFirestore() {
     const tareasLocales = JSON.parse(localStorage.getItem(TAREAS_LOCAL_KEY)) || [];
     
-    const tareasParaSincronizar = tareasLocales.filter(t => t.sincronizado === false);
-    if (tareasParaSincronizar.length === 0) {
+    // Tareas para AÑADIR (que no estén borradas)
+    const tareasParaSincronizar = tareasLocales.filter(t => t.sincronizado === false && !t.borrado);
+    
+    // --- NUEVO: Tareas para BORRAR ---
+    const tareasParaBorrar = tareasLocales.filter(t => t.borrado === true && t.sincronizado === false && !t.id.startsWith('local-'));
+
+    if (tareasParaSincronizar.length === 0 && tareasParaBorrar.length === 0) {
       console.log('Todo está sincronizado.');
       return;
     }
     
-    console.log(`Sincronizando ${tareasParaSincronizar.length} tareas...`);
-    const batch = db.batch();
+    console.log(`Sincronizando ${tareasParaSincronizar.length} tareas y borrando ${tareasParaBorrar.length}...`);
     
+    const batch = db.batch();
+
+    // Lote de tareas para AÑADIR
     tareasParaSincronizar.forEach(tarea => {
       const docRef = tareasCollection.doc();
       const tareaFirestore = {
         titulo: tarea.titulo,
-        ubicacion: tarea.ubicacion || "N/A", // <-- ¡NUEVO!
+        ubicacion: tarea.ubicacion || "N/A", // (Tu lógica de ubicación)
         completada: tarea.completada,
         id: docRef.id 
       };
       batch.set(docRef, tareaFirestore);
     });
-    
+
+    // --- NUEVO: Lote de tareas para BORRAR ---
+    tareasParaBorrar.forEach(tarea => {
+      if (tarea.id && !tarea.id.startsWith('local-')) {
+          const docRef = tareasCollection.doc(tarea.id);
+          batch.delete(docRef);
+      }
+    });
+
+    // Envía el paquete a Firebase
     batch.commit()
       .then(() => {
-        console.log('Sincronización exitosa.');
+        console.log('Sincronización (crear/borrar) exitosa.');
         localStorage.removeItem(TAREAS_LOCAL_KEY);
         cargarTareasDesdeFirestore();
       })
       .catch(error => {
-        console.error('Error al sincronizar:', error);
+        console.error('Error al sincronizar (crear/borrar):', error);
       });
   }
 
-  // --- 5. Carga Inicial (Tu código) ---
+  // --- 5. Carga Inicial (MODIFICADA) ---
   function cargarTareasDesdeFirestore() {
     console.log('Cargando tareas desde Firestore...');
     tareasCollection.get()
       .then(snapshot => {
+        const tareas = [];
         if (snapshot.empty) {
           console.log('No hay tareas en Firestore.');
-          renderizarTareas([]);
-          return;
         }
-        const tareas = [];
+        
         snapshot.forEach(doc => {
-          tareas.push(doc.data());
+          // --- NUEVO: Añade banderas por defecto ---
+          tareas.push({ ...doc.data(), borrado: false, sincronizado: true });
         });
-        localStorage.setItem(TAREAS_LOCAL_KEY, JSON.stringify(tareas));
-        renderizarTareas(tareas);
+        
+        // Compara con las locales antes de sobrescribir
+        const tareasLocales = JSON.parse(localStorage.getItem(TAREAS_LOCAL_KEY)) || [];
+        const tareasOfflineSinSincronizar = tareasLocales.filter(t => t.sincronizado === false);
+        
+        // Combina las tareas de Firebase + las locales que aún no se suben
+        const tareasCombinadas = [...tareas, ...tareasOfflineSinSincronizar];
+        
+        localStorage.setItem(TAREAS_LOCAL_KEY, JSON.stringify(tareasCombinadas));
+        renderizarTareas(tareasCombinadas);
       })
       .catch(err => {
         console.error('Error cargando desde Firestore. Usando caché local.', err);
@@ -172,9 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ... (Tu código se queda igual) ...
   }
   
-  // --- INICIO EJERCICIO 3: NUEVAS FUNCIONES DE UBICACIÓN ---
-  
-  // Función 1: Obtiene el GPS (devuelve una Promesa)
+  // --- Lógica de Geolocalización (Tu código) ---
   function obtenerUbicacionActual() {
     return new Promise((resolve, reject) => {
       if ('geolocation' in navigator) {
@@ -186,15 +247,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
           },
           (error) => {
-            // Si el usuario niega el permiso, etc.
             console.warn('No se pudo obtener ubicación:', error.message);
             reject(new Error('No se pudo obtener ubicación.'));
           },
-          // Opciones para que sea más rápido
           {
             enableHighAccuracy: false,
-            timeout: 5000, // 5 segundos de tiempo límite
-            maximumAge: 600000 // 10 minutos de caché
+            timeout: 5000, 
+            maximumAge: 600000 
           }
         );
       } else {
@@ -203,22 +262,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Función 2: Convierte Coordenadas a Dirección (Reverse Geocoding)
   async function convertirCoordenadasA_Direccion(coords) {
     if (!coords) return "Ubicación desconocida";
     try {
-      // Usamos la API gratuita de OpenStreetMap (Nominatim)
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lon}&zoom=18`, {
         headers: {
-          'User-Agent': 'TaskFlowApp (axelghmm.github.io)' // Política de Nominatim
+          'User-Agent': 'TaskFlowApp (axelghmm.github.io)'
         }
       });
       const data = await response.json();
-      
-      // Extrae una dirección simple
       if (data.display_name) {
         const parts = data.display_name.split(',');
-        // Devuelve los primeros dos segmentos (ej. "Calle Falsa 123, Colonia Centro")
         return parts.length > 1 ? `${parts[0].trim()}, ${parts[1].trim()}` : parts[0].trim();
       }
       return "Cerca de tu ubicación";
@@ -227,7 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return "Ubicación no disponible (sin red)";
     }
   }
-
   // --- FIN EJERCICIO 3 ---
 
   // --- Arranque de la App (Tu código) ---

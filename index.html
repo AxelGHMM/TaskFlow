@@ -63,6 +63,8 @@
         /* 2. Main Content (Lista de Tareas) */
         .task-list {
             padding: 20px;
+            /* --- NUEVO: Para el swipe --- */
+            overflow-x: hidden;
         }
         .task-item {
             background-color: var(--color-blanco);
@@ -70,16 +72,17 @@
             padding: 15px;
             margin-bottom: 10px;
             display: flex;
-            /* --- NUEVO: Alinea el checkbox al inicio del texto --- */
-            align-items: flex-start; 
+            align-items: flex-start; /* (Esto es de la ubicación contextual) */
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            
+            /* --- NUEVO: Transiciones para el swipe --- */
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
         }
         .task-item input[type="checkbox"] {
             margin-right: 15px;
             width: 20px;
             height: 20px;
-            /* --- NUEVO: Baja un poco el checkbox --- */
-            margin-top: 3px; 
+            margin-top: 3px; /* (Esto es de la ubicación contextual) */
             flex-shrink: 0;
         }
         .task-item label {
@@ -90,12 +93,17 @@
             color: #888;
         }
         
-        /* --- NUEVO: Contenedor para el texto de la tarea y la ubicación --- */
+        /* --- NUEVO: Clase para la animación de borrado --- */
+        .task-item.deleting {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        
+        /* (Estilos para la ubicación contextual) */
         .task-text-container {
             display: flex;
             flex-direction: column;
         }
-        /* --- NUEVO: Estilo para la ubicación --- */
         .task-location {
             font-size: 0.8em;
             color: #888;
