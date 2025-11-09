@@ -82,6 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // 3. Intenta sincronizar con Firebase
       sincronizarConFirestore();
+      
+      // --- EJERCICIO 2 (AÑADIDO) ---
+      // Mostramos una notificación después de agregar la tarea
+      mostrarNotificacionLocal('¡Tarea Agregada!', `La tarea "${titulo}" se guardó.`);
+      // --- FIN EJERCICIO 2 ---
     }
   });
 
@@ -161,11 +166,68 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTareas(tareasLocales);
       });
   }
+
+  // --- INICIO EJERCICIO 2: Lógica de Notificaciones (NUEVO) ---
+
+  // Pide permiso al usuario en cuanto carga la app
+  function solicitarPermisoNotificaciones() {
+    // Revisa si el navegador soporta notificaciones
+    if ('Notification' in window) {
+      console.log('El navegador soporta notificaciones.');
+      // 'default', 'granted', 'denied'
+      if (Notification.permission === 'default') {
+        console.log('Solicitando permiso para notificaciones...');
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            console.log('¡Permiso concedido!');
+            // Muestra una notificación de bienvenida
+            mostrarNotificacionLocal('¡Bienvenido a TaskFlow!', 'Las notificaciones están activadas.');
+          } else {
+            console.log('Permiso denegado.');
+          }
+        });
+      } else {
+        console.log('El permiso ya está en estado: ' + Notification.permission);
+      }
+    } else {
+      console.log('Este navegador no soporta notificaciones.');
+    }
+  }
+
+  // Muestra la notificación
+  function mostrarNotificacionLocal(titulo, cuerpo) {
+    // Revisa si el permiso fue concedido
+    if (Notification.permission === 'granted') {
+      
+      // Opciones de la notificación
+      const options = {
+        body: cuerpo,
+        icon: 'images/icono-192.png' // Ruta a tu ícono
+      };
+
+      // Muestra la notificación
+      // Usamos el 'registration' del Service Worker para mostrarla
+      // Esto es más estándar para PWAs
+      navigator.serviceWorker.ready.then(registration => {
+        registration.showNotification(titulo, options);
+      });
+
+    } else {
+      console.log('No se tiene permiso para mostrar notificaciones.');
+    }
+  }
   
-  // --- Arranque de la App ---
-  // 1. Intenta sincronizar por si quedaron tareas pendientes
+  // --- FIN EJERCICIO 2 ---
+  
+  // --- Arranque de la App (MODIFICADO) ---
+  
+  // 1. Pide permiso para notificaciones (Ejercicio 2)
+  solicitarPermisoNotificaciones();
+  
+  // 2. Intenta sincronizar por si quedaron tareas pendientes
   sincronizarConFirestore();
-  // 2. Carga la lista de tareas
+  
+  // 3. Carga la lista de tareas
   cargarTareasDesdeFirestore();
 
 });
