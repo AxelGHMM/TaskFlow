@@ -108,8 +108,9 @@
     </main>
 
     <button class="fab">+</button>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     
     <script>
       // Tu configuración de Firebase
@@ -134,7 +135,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         // Esto fallaba (línea 142). Lo corregimos quitando la barra '/'
-        navigator.serviceWorker.register('sw.js') 
+        navigator.serviceWorker.register('./sw.js') 
           .then(registration => {
             console.log('ServiceWorker registrado con éxito:', registration.scope);
           })
