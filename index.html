@@ -114,8 +114,8 @@
     if ('serviceWorker' in navigator) {
       // Espera a que la página cargue
       window.addEventListener('load', () => {
-        // Registra nuestro archivo sw.js
-        navigator.serviceWorker.register('/sw.js') // Asegúrate que tu sw.js esté en la raíz
+        // Registra nuestro archivo sw.js (RUTA CORREGIDA)
+        navigator.serviceWorker.register('sw.js') 
           .then(registration => {
             console.log('ServiceWorker registrado con éxito:', registration.scope);
           })
@@ -124,15 +124,13 @@
           });
       });
     }
-
-    // --- AQUÍ ESTABA EL ERROR: Borré las líneas 'import' ---
-
     </script>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
+    
     <script>
-      // Tu configuración de Firebase (esta ya está bien)
+      // Tu configuración de Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyA8oQFUU4aRtqASRJnKkt-ZGoWpR1ckYJM",
         authDomain: "taskflow-pqa.firebaseapp.com",

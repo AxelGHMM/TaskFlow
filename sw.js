@@ -1,17 +1,16 @@
 // sw.js
 
-// El nombre de tu caché
 const CACHE_NAME = 'taskflow-cache-v1';
 
 // Los archivos que quieres guardar en caché para que la app funcione offline.
-// ¡Asegúrate de que las rutas sean correctas!
+// ¡RUTAS CORREGIDAS!
 const urlsToCache = [
-  '/',
-  '/index.html',
-  // Agrega aquí tu CSS, JS e íconos principales
-  // Ejemplo: '/style.css',
-  // Ejemplo: '/app.js',
-  // Ejemplo: '/iconos/icono-192.png'
+  '.',
+  'index.html',
+  'app.js',
+  'manifest.json',
+  'images/icono-192.png', // Asegúrate de tener este ícono o actualiza la ruta
+  'images/icono-512.png'  // Asegúrate de tener este ícono o actualiza la ruta
 ];
 
 // Evento "install": Se dispara cuando el Service Worker se instala.
