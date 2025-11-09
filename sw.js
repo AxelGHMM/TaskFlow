@@ -2,15 +2,16 @@
 
 const CACHE_NAME = 'taskflow-cache-v1';
 
-// Los archivos que quieres guardar en caché para que la app funcione offline.
 // ¡RUTAS CORREGIDAS!
+// Tu sw.js está en la raíz, pero tus archivos están en 'TaskFlow'
 const urlsToCache = [
-  '.',
-  'index.html',
-  'app.js',
-  'manifest.json',
-  'images/icono-192.png', // Asegúrate de tener este ícono o actualiza la ruta
-  'images/icono-512.png'  // Asegúrate de tener este ícono o actualiza la ruta
+  'TaskFlow/',
+  'TaskFlow/index.html',
+  'TaskFlow/app.js',
+  'TaskFlow/manifest.json',
+  // Asumo que tus imágenes están en TaskFlow/images/
+  'TaskFlow/images/icono-192.png',
+  'TaskFlow/images/icono-512.png'
 ];
 
 // Evento "install": Se dispara cuando el Service Worker se instala.
@@ -22,6 +23,9 @@ self.addEventListener('install', event => {
         console.log('Cache abierto');
         // Agrega todos nuestros archivos al caché
         return cache.addAll(urlsToCache);
+      })
+      .catch(err => {
+        console.error('Falló el cache.addAll() - revisa las rutas en urlsToCache: ', err);
       })
   );
 });

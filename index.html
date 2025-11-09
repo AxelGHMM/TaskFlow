@@ -109,23 +109,6 @@
 
     <button class="fab">+</button>
     
-    <script>
-    // Revisa si el navegador soporta Service Workers
-    if ('serviceWorker' in navigator) {
-      // Espera a que la página cargue
-      window.addEventListener('load', () => {
-        // Registra nuestro archivo sw.js (RUTA CORREGIDA)
-        navigator.serviceWorker.register('sw.js') 
-          .then(registration => {
-            console.log('ServiceWorker registrado con éxito:', registration.scope);
-          })
-          .catch(err => {
-            console.error('Error al registrar el ServiceWorker:', err);
-          });
-      });
-    }
-    </script>
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore-compat.js"></script>
     
@@ -148,6 +131,21 @@
       const db = firebase.firestore();
     </script>
     
+    <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // La ruta a la RAÍZ (/sw.js) es la correcta
+        navigator.serviceWorker.register('/sw.js') 
+          .then(registration => {
+            console.log('ServiceWorker registrado con éxito:', registration.scope);
+          })
+          .catch(err => {
+            console.error('Error al registrar el ServiceWorker:', err);
+          });
+      });
+    }
+    </script>
+
     <script src="app.js"></script>
 </body>
 
