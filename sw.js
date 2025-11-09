@@ -1,19 +1,20 @@
 // sw.js
 
 const CACHE_NAME = 'taskflow-cache-v1';
+const OFFLINE_PAGE = 'offline.html';
 
-// ¡RUTAS CORREGIDAS!
-// Estas rutas son relativas AL ARCHIVO sw.js
+// Asegúrate de que 'offline.html' esté en la lista
 const urlsToCache = [
   '.',
   'index.html',
   'app.js',
   'manifest.json',
-  'images/icons/icono-192.png', // Asumo que esta es la ruta correcta
-  'images/icons/icono-512.png',
-  'offline.html'  // Asumo que esta es la ruta correcta
+  'images/icons/icono-192.png', // Asegúrate de que esta ruta sea correcta
+  'images/icons/icono-512.png',  // Asegúrate de que esta ruta sea correcta
+  OFFLINE_PAGE
 ];
-// Evento "install"
+
+// Evento "install" (sin cambios, solo se asegura de cachear todo)
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -22,28 +23,40 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
       .catch(err => {
-        console.error('Falló el cache.addAll() - revisa las rutas en urlsToCache: ', err);
+        console.error('Falló el cache.addAll(): ', err);
       })
   );
 });
 
-// Evento "fetch" (MODIFICADO)
+// Evento "fetch" (¡MODIFICADO!)
 self.addEventListener('fetch', event => {
+  
+  // Estrategia: "Network-First" (Red primero) solo para la página principal
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      (async () => {
+        try {
+          // 1. Intenta ir a la red (Internet)
+          const networkResponse = await fetch(event.request);
+          return networkResponse;
+        } catch (error) {
+          // 2. Si la red falla (sin WiFi), muestra la página offline
+          console.log('Fetch falló; sirviendo página offline desde caché.');
+          const cache = await caches.open(CACHE_NAME);
+          return await cache.match(OFFLINE_PAGE);
+        }
+      })()
+    );
+    return; // Importante: salimos aquí
+  }
+
+  // Estrategia: "Cache-First" (Caché primero) para todo lo demás
+  // (app.js, manifest.json, imágenes, etc.)
   event.respondWith(
-    // 1. Intenta buscar en el caché primero
     caches.match(event.request)
       .then(response => {
-        // Si está en caché, devuelve la respuesta del caché
-        if (response) {
-          return response;
-        }
-        
-        // 2. Si NO está en caché, ve a la red a buscarlo
-        return fetch(event.request)
-          .catch(() => {
-            // 3. SI EL FETCH FALLA (sin red), muestra la página offline
-            return caches.match('offline.html');
-          });
+        // Devuelve desde el caché o (si no está) ve a la red
+        return response || fetch(event.request);
       })
   );
 });
