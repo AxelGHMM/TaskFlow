@@ -124,6 +124,28 @@
           });
       });
     }
+
+    // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyA8oQFUU4aRtqASRJnKkt-ZGoWpR1ckYJM",
+  authDomain: "taskflow-pqa.firebaseapp.com",
+  projectId: "taskflow-pqa",
+  storageBucket: "taskflow-pqa.firebasestorage.app",
+  messagingSenderId: "853119446669",
+  appId: "1:853119446669:web:eff5eb82937d633e7abcc4",
+  measurementId: "G-KZ9GWH8RHS"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
     </script>
     
     <script src="app.js"></script>
