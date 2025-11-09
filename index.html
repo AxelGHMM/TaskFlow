@@ -10,15 +10,13 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="#0D47A1">
     
     <style>
-        /* Colores Institucionales */
+        /* ... (Tu CSS :root, body, header se quedan igual) ... */
         :root {
             --color-primario: #0D47A1; /* Azul oscuro */
             --color-fondo: #F5F5F5;   /* Gris claro */
             --color-texto: #333333;
             --color-blanco: #FFFFFF;
         }
-        
-        /* Reseteo básico */
         body, html {
             margin: 0;
             padding: 0;
@@ -26,8 +24,6 @@
             background-color: var(--color-fondo);
             color: var(--color-texto);
         }
-        
-        /* 1. Header (Barra de Navegación) */
         .header {
             background-color: var(--color-primario);
             color: var(--color-blanco);
@@ -50,6 +46,8 @@
         /* 2. Main Content (Lista de Tareas) */
         .task-list {
             padding: 20px;
+            /* --- NUEVO: Para el swipe --- */
+            overflow-x: hidden;
         }
         .task-item {
             background-color: var(--color-blanco);
@@ -59,6 +57,9 @@
             display: flex;
             align-items: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            
+            /* --- NUEVO: Transiciones para el swipe --- */
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
         }
         .task-item input[type="checkbox"] {
             margin-right: 15px;
@@ -73,46 +74,39 @@
             color: #888;
         }
         
+        /* --- NUEVO: Clase para la animación de borrado --- */
+        .task-item.deleting {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        
         /* 3. Floating Action Button (FAB) */
         .fab {
+            /* ... (Tu CSS del FAB se queda igual) ... */
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 60px;
-            height: 60px;
-            background-color: var(--color-primario);
-            color: var(--color-blanco);
-            border: none;
-            border-radius: 50%;
-            font-size: 2.2em; /* Tamaño del '+' */
-            line-height: 55px; /* Centra el '+' verticalmente */
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent; /* Quita el feo highlight azul en móviles */
+            /* ...etc... */
         }
     </style>
 </head>
 <body>
 
     <header class="header">
-    <span class="menu-icon">&#8801;</span>
-    <h1 class="title">Mis Tareas</h1>
-    
-    <span class="profile-icon">&#128100;</span>
-</header>
+        <span class="menu-icon">&#8801;</span>
+        <h1 class="title">Mis Tareas</h1>
+        <span class="profile-icon">&#128100;</span>
+    </header>
 
     <main class="task-list" id="task-list-container">
         <p id="loading-msg" style="text-align: center; padding: 20px;">Cargando tareas...</p>
     </main>
 
     <button class="fab">+</button>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-    
     <script>
-      // Tu configuración de Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyA8oQFUU4aRtqASRJnKkt-ZGoWpR1ckYJM",
         authDomain: "taskflow-pqa.firebaseapp.com",
@@ -122,18 +116,12 @@
         appId: "1:853119446669:web:eff5eb82937d633e7abcc4",
         measurementId: "G-KZ9GWH8RHS"
       };
-
-      // Esto fallaba (línea 128) porque los scripts de arriba no cargaban
       firebase.initializeApp(firebaseConfig);
-      
-      // Esto fallaba (app.js:11) porque 'firebase' no estaba definido
       const db = firebase.firestore();
     </script>
-    
     <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        // Esto fallaba (línea 142). Lo corregimos quitando la barra '/'
         navigator.serviceWorker.register('./sw.js') 
           .then(registration => {
             console.log('ServiceWorker registrado con éxito:', registration.scope);
@@ -144,8 +132,6 @@
       });
     }
     </script>
-
     <script src="app.js"></script>
 </body>
-
 </html>
