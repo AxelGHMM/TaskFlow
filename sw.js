@@ -9,8 +9,8 @@ const urlsToCache = [
   'index.html',
   'app.js',
   'manifest.json',
-  'images/icono-192.png', // Asumo que esta es la ruta correcta
-  'images/icono-512.png'  // Asumo que esta es la ruta correcta
+  'images/icons/icono-192.png', // Asumo que esta es la ruta correcta
+  'images/icons/icono-512.png'  // Asumo que esta es la ruta correcta
 ];
 
 self.addEventListener('install', event => {
