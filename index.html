@@ -108,7 +108,6 @@
     </main>
 
     <button class="fab">+</button>
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore-compat.js"></script>
     
@@ -124,31 +123,17 @@
         measurementId: "G-KZ9GWH8RHS"
       };
 
-      // Inicializa Firebase (usando la sintaxis compat)
+      // Esto fallaba (línea 128) porque los scripts de arriba no cargaban
       firebase.initializeApp(firebaseConfig);
       
-      // Define 'db' para que app.js la pueda usar
+      // Esto fallaba (app.js:11) porque 'firebase' no estaba definido
       const db = firebase.firestore();
     </script>
     
     <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js') 
-          .then(registration => {
-            console.log('ServiceWorker registrado con éxito:', registration.scope);
-          })
-          .catch(err => {
-            console.error('Error al registrar el ServiceWorker:', err);
-          });
-      });
-    }
-    </script>
-    
-    <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        // La ruta a la RAÍZ (/sw.js) es la correcta
+        // Esto fallaba (línea 142). Lo corregimos quitando la barra '/'
         navigator.serviceWorker.register('sw.js') 
           .then(registration => {
             console.log('ServiceWorker registrado con éxito:', registration.scope);
